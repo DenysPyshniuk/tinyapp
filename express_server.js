@@ -56,14 +56,16 @@ app.get("/hello", (req, res) => {
 app.post("/urls", (req, res) => {
   res.statusCode = 200;
   const newShortURL = generateRandomString(urlDatabase);
-  // console.log(newShortURL);
+  console.log('New Short URL : ', newShortURL);
   urlDatabase[newShortURL] = req.body.longURL;
   res.redirect(`/urls/${newShortURL}`);
 });
 
 
 app.get("/u/:shortURL", (req, res) => {
-  // let longURL;
+
+  const shortURL = req.params.shortURL;
+  const longURL = urlDatabase[shortURL];
   if(!urlDatabase[req.params.shortURL]) {
     res.statusCode = 400;
     return res.send("The page you have requested does not exist. Please check to make sure you've entered the correct Tiny URL and try again :)");
@@ -71,10 +73,12 @@ app.get("/u/:shortURL", (req, res) => {
   res.redirect(longURL);
 });
 
-// app.get("/u/:shortURL", (req, res) => {
-//   // const longURL = ...
-//   res.redirect(longURL);
-// });
+app.post("/urls/:shortURL/delete", (req, res) => {
+  const shortURL = req.params.shortURL;
+  console.log(shortURL);
+  delete urlDatabase.shortURL;
+  res.redirect("/urls");
+});
 
 
 app.listen(PORT, () => {
