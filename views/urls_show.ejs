@@ -9,10 +9,16 @@
 <body>
   <%- include('partials/_header') %>
   <div class="card text-center">
+
       <div class="card-header"></div>
       <div class="card-body">
         <h5 class="card-title">TinyURL for: <%= longURL %></h5>
         <p class="card-text">Short URL: <a href="/u/<%= shortURL %>"><%= shortURL %></a></p>
+        <h4>Edit</h4>
+        <form method="POST" action="/urls/<%= shortURL %>">
+          <label>New URL:</label> <input type="url" placeholder="https://" name="longURL"></input>
+          <input type="submit" value="Submit" class = "btn btn-primary" placeholder=""></input>
+        </form>
       </div>
     <div class="card-footer text-muted"></div>
   </div>

@@ -7,6 +7,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 app.set("view engine", "ejs");
 
+/** Function to generate new random 6 digit string short URL */
 function generateRandomString() {
   let alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
   let randomURL = '';
@@ -22,6 +23,7 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com",
 };
 
+/** GET Route to Show the Home Page */
 app.get("/", (req, res) => {
   res.redirect("/urls");
 });
@@ -73,11 +75,19 @@ app.get("/u/:shortURL", (req, res) => {
   res.redirect(longURL);
 });
 
+/** Deletes the short URL from database */
 app.post("/urls/:shortURL/delete", (req, res) => {
-  const shortURL = req.params.shortURL;
-  console.log(shortURL);
-  delete urlDatabase.shortURL;
+  let shortURL = req.params.shortURL;
+  delete urlDatabase[shortURL];
   res.redirect("/urls");
+});
+
+/** Edit a long URL and redirects to the urls_show page */
+app.post("/urls/:id", (req, res) => {
+  let shortURL = req.params.id;
+  urlDatabase[shortURL] = req.body.longURL;
+
+  res.redirect(`/urls`);
 });
 
 
