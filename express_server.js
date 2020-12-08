@@ -23,20 +23,23 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com",
 };
 
-/** GET Route to Show the Home Page */
+/** Home Page rout */
 app.get("/", (req, res) => {
   res.redirect("/urls");
 });
 
+/** URL page rout */
 app.get("/urls", (req, res) => {
   const templateVars = { urls: urlDatabase };
   res.render("urls_index", templateVars);
 });
 
+/** Submit NEW URL page rout */
 app.get("/urls/new", (req, res) => {
   res.render("urls_new");
 });
 
+/** Update URL page rout */
 app.get("/urls/:shortURL", (req, res) => {
   const shortURL = req.params.shortURL;
   const longURL = urlDatabase[shortURL];
@@ -88,6 +91,14 @@ app.post("/urls/:id", (req, res) => {
   urlDatabase[shortURL] = req.body.longURL;
 
   res.redirect(`/urls`);
+});
+
+/** Login Post rout */
+app.post("/login", (req, res) => {
+  let name = request.body.username;
+  res.cookie('username');
+
+  // res.redirect(`/urls`);
 });
 
 
