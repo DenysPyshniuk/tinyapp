@@ -17,6 +17,19 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com",
 };
 
+const users = {
+  userRandomID: {
+    id: "userRandomID",
+    email: "user@example.com",
+    password: "purple-monkey-dinosaur",
+  },
+  user2RandomID: {
+    id: "user2RandomID",
+    email: "user2@example.com",
+    password: "dishwasher-funk",
+  },
+};
+
 
 
 /** Function to generate new random 6 digit string short URL */
@@ -36,6 +49,12 @@ app.get("/", (req, res) => {
   res.redirect("/urls");
 });
 
+/** Register Page Rout */
+app.get("/register", (req, res) => {
+  res.render("registration_form")
+});
+
+
 /** Login rout */
 app.get("/login", (req, res) => {
   res.render("login");
@@ -43,10 +62,11 @@ app.get("/login", (req, res) => {
 
 /** URL page rout */
 app.get("/urls", (req, res) => {
-  const username = req.cookies["username"];
+  const userID = req.cookies["user_id"];
+  let username = users[userID]['email'];
   const templateVars = {
     urls: urlDatabase,
-    username,
+    username
   };
   res.render("urls_index", templateVars);
 });
@@ -54,7 +74,7 @@ app.get("/urls", (req, res) => {
 /** Submit NEW URL page rout */
 app.get("/urls/new", (req, res) => {
   const templateVars = {
-    username: req.cookies["username"],
+    username: users[req.cookies["user_id"]].email
   };
   res.render("urls_new", templateVars);
 });
@@ -66,7 +86,7 @@ app.get("/urls/:shortURL", (req, res) => {
   const templateVars = {
     shortURL,
     longURL,
-    username: req.cookies["username"]
+    username: users[req.cookies["user_id"]].email
   };
   res.render("urls_show", templateVars);
 });
@@ -97,7 +117,7 @@ app.get("/u/:shortURL", (req, res) => {
 app.post("/urls", (req, res) => {
   res.statusCode = 200;
   const newShortURL = generateRandomString(urlDatabase);
-  console.log('New Short URL : ', newShortURL);
+  // console.log('New Short URL : ', newShortURL);
   urlDatabase[newShortURL] = req.body.longURL;
   res.redirect(`/urls/${newShortURL}`);
 });
@@ -115,6 +135,22 @@ app.post("/urls/:id", (req, res) => {
   urlDatabase[shortURL] = req.body.longURL;
 
   res.redirect(`/urls`);
+});
+
+/** Register Post rout */
+app.post('/register', (req, res) => {
+  let generatedID = generateRandomString();
+  const providedEmail = req.body.email;
+  const providedPassword = req.body.password;
+  res.cookie('user_id', generatedID);
+  const user = {
+    id: generatedID,
+    email: providedEmail,
+    password: providedPassword
+  };
+  users[generatedID] = user;
+  console.log('USERs: ', users);
+  res.redirect(`/urls`)
 });
 
 /** Login Post rout */
