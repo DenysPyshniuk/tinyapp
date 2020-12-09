@@ -7,16 +7,22 @@
 
 <body>
 
-    <h1>Login:</h1>
+    <h1>Login</h1>
     <form action="/login" method="POST">
 
-      <label for="useremail">Name:</label>
-      <input id="useremail" type="email" name="email" placeholder="email" style="width: 300px">
+      <label for="useremail"><b>Email address:</b></label>
+      <br>
+      <input id="useremail" type="email" name="email" placeholder="Enter email" style="width: 300px">
       <br><br>
-      <label for="userpassword">Password:</label>
-      <input id="userpassword" type="password" name="password" placeholder="password" style="width: 300px">
+      <label for="userpassword"><b>Password:</b></label>
+      <br>
+      <input id="userpassword" type="password" name="password" placeholder="Password" style="width: 300px">
       <br><br>
-      <input type="submit" value="Submit">
+      <input type="submit" value="Login">
+      <br>
+      <br>
+      <p>If you are a new user:</p>
+      <a class="nav-item nav-link" href="/register"> Register! </a>
 
     </form>
 
