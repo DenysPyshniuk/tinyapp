@@ -43,9 +43,10 @@ app.get("/login", (req, res) => {
 
 /** URL page rout */
 app.get("/urls", (req, res) => {
+  const username = req.cookies["username"];
   const templateVars = {
     urls: urlDatabase,
-    username: req.cookies["username"]
+    username,
   };
   res.render("urls_index", templateVars);
 });
@@ -123,12 +124,11 @@ app.post("/login", (req, res) => {
   res.redirect(`/urls`);
 });
 
-// /** Logout Post rout */
-// app.post("/logout", (req, res) => {
-//   const username = req.body.username;
-//   res.clearCookie('username', username);
-//   res.redirect(`/urls`);
-// });
+/** Logout Post rout */
+app.post("/logout", (req, res) => {
+  res.clearCookie('username');
+  res.redirect(`/urls`);
+});
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
