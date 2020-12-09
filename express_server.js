@@ -28,6 +28,11 @@ const users = {
     email: "user2@example.com",
     password: "dishwasher-funk",
   },
+  testUser: {
+    id: "tester",
+    email: "test@test",
+    password: "test",
+  },
 };
 
 
@@ -63,10 +68,13 @@ app.get("/login", (req, res) => {
 /** URL page rout */
 app.get("/urls", (req, res) => {
   const userID = req.cookies["user_id"];
-  let username = users[userID]['email'];
+  let email;
+  if(userID) {
+    email = users[userID]['email'];
+  }
   const templateVars = {
     urls: urlDatabase,
-    username
+    email
   };
   res.render("urls_index", templateVars);
 });
@@ -74,7 +82,7 @@ app.get("/urls", (req, res) => {
 /** Submit NEW URL page rout */
 app.get("/urls/new", (req, res) => {
   const templateVars = {
-    username: users[req.cookies["user_id"]].email
+    email: users[req.cookies["user_id"]].email
   };
   res.render("urls_new", templateVars);
 });
@@ -86,7 +94,7 @@ app.get("/urls/:shortURL", (req, res) => {
   const templateVars = {
     shortURL,
     longURL,
-    username: users[req.cookies["user_id"]].email
+    email: users[req.cookies["user_id"]].email
   };
   res.render("urls_show", templateVars);
 });
@@ -133,7 +141,6 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 app.post("/urls/:id", (req, res) => {
   let shortURL = req.params.id;
   urlDatabase[shortURL] = req.body.longURL;
-
   res.redirect(`/urls`);
 });
 
@@ -142,28 +149,66 @@ app.post('/register', (req, res) => {
   let generatedID = generateRandomString();
   const providedEmail = req.body.email;
   const providedPassword = req.body.password;
-  res.cookie('user_id', generatedID);
+  console.log('USERS :', users);
+
+  if (!providedEmail || !providedPassword) {
+    res.status(403).send("Fill the form!");
+    return;
+
+  }
+  for(let user in users) {
+    // console.log("Provided EMAIL: ", providedEmail);
+    // console.log("EMAIL: ", users[user]["email"]);
+    if (providedEmail === users[user]['email']) {
+      res.render("error_400");
+    }
+  }
+
   const user = {
     id: generatedID,
     email: providedEmail,
     password: providedPassword
   };
   users[generatedID] = user;
+  res.cookie('user_id', generatedID);
   console.log('USERs: ', users);
   res.redirect(`/urls`)
 });
 
 /** Login Post rout */
 app.post("/login", (req, res) => {
-  const username = req.body.username;
-  res.cookie("username", username);
-  res.redirect(`/urls`);
+  const providedEmail = req.body.email;
+  const providedPassword = req.body.password;
+
+  console.log("Provided Password", providedPassword);
+  console.log("Provided Email", providedEmail);
+
+  if(!providedEmail || (providedEmail === "")) {
+    res.status(403).send("Fill the form!");
+    return;
+  }
+      // let found = false;
+  for(let i in users) {
+    console.log('User emails : ', users[i].email);
+    if(users[i].email === providedEmail) {
+      console.log(users[i]);
+      if(users[i].password == providedPassword) {
+        console.log("Provided Password", providedPassword);
+        console.log("Object Password", users[i].password);
+        const user_id = i;
+        res.cookie("user_id", user_id);
+        res.redirect("/urls");
+      }
+    }
+  }
+  res.status(403).send("Login or password is incorrect!");
+  return;
 });
 
 /** Logout Post rout */
 app.post("/logout", (req, res) => {
-  res.clearCookie('username');
-  res.redirect(`/urls`);
+  res.clearCookie("user_id");
+  res.redirect('/login');
 });
 
 app.listen(PORT, () => {
