@@ -10,13 +10,18 @@ app.set("view engine", "ejs");
 
 app.use(morgan("dev"));
 app.use(cookieParser());
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.urlencoded({extended: true}));
 
+console.log('---------------------------------------------------------------');
+
+/** DATABASE Obj */
 const urlDatabase = {
-  'b2xVn2': "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com",
+  b2xVn2: { longURL: "https://www.lighthouselabs.ca", userID: "tester" },
+  c2xVn3: { longURL: "http://www.google.com", userID: "userRandomID" },
+  i3BoGr: { longURL: "https://www.google.ca", userID: "tester" }
 };
 
+/** USERS Obj */
 const users = {
   userRandomID: {
     id: "userRandomID",
@@ -28,16 +33,14 @@ const users = {
     email: "user2@example.com",
     password: "dishwasher-funk",
   },
-  testUser: {
+  tester: {
     id: "tester",
     email: "test@test",
     password: "test",
   },
 };
 
-
-
-/** Function to generate new random 6 digit string short URL */
+/** Generate new random 6 digit string function short URL */
 function generateRandomString() {
   let alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
   let randomURL = '';
@@ -45,9 +48,21 @@ function generateRandomString() {
     randomURL += alphabet.charAt(Math.floor(Math.random() * alphabet.length));
   }
   return randomURL;
-}
+};
 
-//////           APP.GET        ////////
+/** Filter Short URL's function for special userID's */
+function urlsForUser(id) {
+  const urls = {};
+  for (let shortURL in urlDatabase) {
+    if (urlDatabase[shortURL].userID === id) {
+      urls[shortURL] = urlDatabase[shortURL];
+    }
+  }
+  return urls;
+};
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\\\
+////// //////////       GET      /////////  ////////
 
 /** Home Page rout */
 app.get("/", (req, res) => {
@@ -59,89 +74,136 @@ app.get("/register", (req, res) => {
   res.render("registration_form")
 });
 
-
-/** Login rout */
+/** Login Get rout */
 app.get("/login", (req, res) => {
   res.render("login");
 });
 
-/** URL page rout */
+/** URLS Get page rout */
 app.get("/urls", (req, res) => {
   const userID = req.cookies["user_id"];
   let email;
   if(userID) {
     email = users[userID]['email'];
+    // console.log('email: ', email);
   }
   const templateVars = {
-    urls: urlDatabase,
+    urls: urlsForUser(userID),
     email
   };
+  // console.log('email: ', email);
   res.render("urls_index", templateVars);
 });
 
 /** Submit NEW URL page rout */
 app.get("/urls/new", (req, res) => {
+  const userID = req.cookies["user_id"];
+  let email;
+  if (userID) {
+    email = users[userID]["email"];
+  }
+  else {
+    res.redirect('/login')
+  }
   const templateVars = {
-    email: users[req.cookies["user_id"]].email
-  };
+    email
+  }
   res.render("urls_new", templateVars);
 });
 
-/** Update URL page rout */
+/** Edit LongURL page rout */
 app.get("/urls/:shortURL", (req, res) => {
   const shortURL = req.params.shortURL;
   const longURL = urlDatabase[shortURL];
+  const userID = req.cookies["user_id"];
+  // console.log(req.params);
+  if(longURL['userID'] !== userID) {
+    res.status(403).send(`You don't have access!`)
+    // res.redirect('/login');
+  } else {
+  let email;
+  if (userID) {
+    email = users[userID]["email"];
+  }
   const templateVars = {
     shortURL,
     longURL,
-    email: users[req.cookies["user_id"]].email
+    email,
   };
   res.render("urls_show", templateVars);
+  }
 });
 
-app.get("/urls.json", (req, res) => {
-  res.json(urlDatabase);
-});
-
-app.get("/hello", (req, res) => {
-  res.send("<html><body>Hello <b>World</b></body></html>\n");
-});
-
+/** GET Route to long URL website after input short URL ID */
 app.get("/u/:shortURL", (req, res) => {
   const shortURL = req.params.shortURL;
   const longURL = urlDatabase[shortURL];
   if (!urlDatabase[req.params.shortURL]) {
     res.statusCode = 400;
     return res.send(
-      "The page you have requested does not exist. Please check to make sure you've entered the correct Tiny URL and try again :)"
+      "The page you have requested does not exist. Please check to make sure you've entered the correct TinyApp URL and try again :)"
     );
   }
   res.redirect(longURL);
 });
 
+/** GET JSON file */
+app.get("/urls.json", (req, res) => {
+  res.json(urlDatabase);
+});
 
-//////           APP.POST         ////////
+/** Hello Page */
+app.get("/hello", (req, res) => {
+  res.send("<html><body>Hello <b>World</b></body></html>\n");
+});
 
+
+///~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\\\
+
+///////////////// POST  /////////////
+
+// POST new Short URL
 app.post("/urls", (req, res) => {
   res.statusCode = 200;
   const newShortURL = generateRandomString(urlDatabase);
-  // console.log('New Short URL : ', newShortURL);
-  urlDatabase[newShortURL] = req.body.longURL;
+  urlDatabase[newShortURL] = {longURL: req.body.longURL, userID: req.cookies.user_id};
   res.redirect(`/urls/${newShortURL}`);
 });
 
-/** Deletes the short URL from database */
-app.post("/urls/:shortURL/delete", (req, res) => {
-  let shortURL = req.params.shortURL;
-  delete urlDatabase[shortURL];
-  res.redirect("/urls");
-});
-
-/** Edit a long URL and redirects to the urls_show page */
+/** Edit Long URL and redirects to the urls_show page */
 app.post("/urls/:id", (req, res) => {
   let shortURL = req.params.id;
-  urlDatabase[shortURL] = req.body.longURL;
+
+  urlDatabase[shortURL].longURL = req.body.longURL;
   res.redirect(`/urls`);
+});
+
+/** Delete Short URL from database */
+app.post("/urls/:shortURL/delete", (req, res) => {
+  const shortURL = req.params.shortURL;
+  const longURL = urlDatabase[shortURL];
+  const userID = req.cookies["user_id"];
+
+  if (longURL["userID"] !== userID) {
+    res.status(403).send(`You don't have access!`);
+    return;
+  } else {
+    let email;
+    if (userID) {
+      email = users[userID]["email"];
+    }
+    // const templateVars = {
+    //   shortURL,
+    //   longURL,
+    //   email,
+    // };
+    // res.render("urls_show", templateVars);
+    delete urlDatabase[shortURL];
+    res.redirect("/urls");
+  }
+  // let shortURL = req.params.shortURL;
+  // delete urlDatabase[shortURL];
+  // res.redirect("/urls");
 });
 
 /** Register Post rout */
@@ -149,7 +211,6 @@ app.post('/register', (req, res) => {
   let generatedID = generateRandomString();
   const providedEmail = req.body.email;
   const providedPassword = req.body.password;
-  console.log('USERS :', users);
 
   if (!providedEmail || !providedPassword) {
     res.status(403).send("Fill the form!");
@@ -157,8 +218,6 @@ app.post('/register', (req, res) => {
 
   }
   for(let user in users) {
-    // console.log("Provided EMAIL: ", providedEmail);
-    // console.log("EMAIL: ", users[user]["email"]);
     if (providedEmail === users[user]['email']) {
       res.render("error_400");
     }
@@ -171,7 +230,7 @@ app.post('/register', (req, res) => {
   };
   users[generatedID] = user;
   res.cookie('user_id', generatedID);
-  console.log('USERs: ', users);
+  // console.log('USERs: ', users);
   res.redirect(`/urls`)
 });
 
@@ -180,29 +239,21 @@ app.post("/login", (req, res) => {
   const providedEmail = req.body.email;
   const providedPassword = req.body.password;
 
-  console.log("Provided Password", providedPassword);
-  console.log("Provided Email", providedEmail);
-
   if(!providedEmail || (providedEmail === "")) {
     res.status(403).send("Fill the form!");
     return;
   }
-      // let found = false;
   for(let i in users) {
-    console.log('User emails : ', users[i].email);
     if(users[i].email === providedEmail) {
-      console.log(users[i]);
       if(users[i].password == providedPassword) {
-        console.log("Provided Password", providedPassword);
-        console.log("Object Password", users[i].password);
         const user_id = i;
         res.cookie("user_id", user_id);
         res.redirect("/urls");
+        return;
       }
     }
   }
   res.status(403).send("Login or password is incorrect!");
-  return;
 });
 
 /** Logout Post rout */
@@ -211,6 +262,7 @@ app.post("/logout", (req, res) => {
   res.redirect('/login');
 });
 
+/** Listen port */
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
