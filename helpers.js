@@ -31,10 +31,10 @@ const users = {
 
 /** Generate new random 6 digit string function short URL */
 function generateRandomString() {
-  let alphabet =
+  const alphabet =
     "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
   let randomURL = "";
-  for (let i = 0; i < 5; i++) {
+  for (const i = 0; i < 5; i++) {
     randomURL += alphabet.charAt(Math.floor(Math.random() * alphabet.length));
   }
   return randomURL;
@@ -44,7 +44,7 @@ function generateRandomString() {
 function urlsForUser(id) {
   const urls = {};
   for (let shortURL in urlDatabase) {
-    if (urlDatabase[shortURL].userID === id) {
+    if(urlDatabase[shortURL].userID === id) {
       urls[shortURL] = urlDatabase[shortURL];
     }
   }
@@ -53,7 +53,7 @@ function urlsForUser(id) {
 
 /** Check if user exists */
 function getUserByEmail(email, users) {
-  for (let user in users) {
+  for (const user in users) {
     if (email === users[user].email) {
       return users[user];
     }
