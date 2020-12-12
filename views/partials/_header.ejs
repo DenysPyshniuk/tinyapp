@@ -10,14 +10,11 @@
         <a class="nav-item nav-link" href="/urls">My URLs</a>
         <a class="nav-item nav-link" href="/urls/new">Create New URL</a>
 
-
       </div>
     </div>
 
     <% if(!email){ %>
-
-      <p> Please Login </p>
-
+      <p> Please: </p>
       <a class="nav-item nav-link" href="/register">Register</a>
       <a class="nav-item nav-link" href="/login">Login</a>
 
@@ -26,7 +23,6 @@
       <p> Logged In As:<b> <%= email %></b> <button type="submit">Logout</button></p>
 </form>
     <% } %>
-
 
   </nav>
 </header>
