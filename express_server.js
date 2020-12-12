@@ -25,16 +25,34 @@ console.log('------------------------------------');
 
 /** Home */
 app.get("/", (req, res) => {
+  const userID = req.session["userID"];
+  let email;
+  if (!userID) {
+    res.redirect('/login')
+    return;
+  }
   res.redirect("/urls");
 });
 
 /** Register */
 app.get("/register", (req, res) => {
+  const userID = req.session["userID"];
+  let email;
+  if (userID) {
+    res.redirect("/urls");
+    return;
+  }
   res.render("registration_form");
 });
 
 /** Login */
 app.get("/login", (req, res) => {
+  const userID = req.session["userID"];
+  let email;
+  if (userID) {
+    res.redirect("/urls");
+    return;
+  }
   res.render("login");
 });
 
@@ -42,6 +60,10 @@ app.get("/login", (req, res) => {
 app.get("/urls", (req, res) => {
   const userID = req.session["userID"];
   let email;
+  if(!userID) {
+    res.status(401).send('You are not loged in!')
+    return;
+  }
   if (userID) {
     email = users[userID]['email'];
   }
