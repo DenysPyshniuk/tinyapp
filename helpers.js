@@ -34,7 +34,7 @@ function generateRandomString() {
   const alphabet =
     "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
   let randomURL = "";
-  for (const i = 0; i < 5; i++) {
+  for (let i = 0; i < 5; i++) {
     randomURL += alphabet.charAt(Math.floor(Math.random() * alphabet.length));
   }
   return randomURL;
